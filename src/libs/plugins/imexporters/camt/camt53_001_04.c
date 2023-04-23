@@ -13,8 +13,10 @@ static void _import_053_001_04_read_account_spec(AB_IMEXPORTER *ie,
   const char *s;
 
   s = GWEN_XMLNode_GetCharValueByPath(xmlNode, "Id/IBAN", NULL);
-  if (s && *s)
+  if (s && *s) {
     AB_AccountSpec_SetIban(accountSpec, s);
+    AB_AccountSpec_SetAccountNumber(accountSpec, s);
+  }
 
   s = GWEN_XMLNode_GetCharValueByPath(xmlNode, "Ccy", NULL);
   if (s && *s)
@@ -73,7 +75,7 @@ _import_053_001_04_read_balance(AB_IMEXPORTER *ie, GWEN_XMLNODE *xmlNode,
       AB_Balance_free(balance);
       return GWEN_ERROR_BAD_DATA;
     }
-    if (strcasecmp(s, "CRDT") == 0)
+    if (strcasecmp(s, "DBIT") == 0)
       AB_Value_Negate(val);
 
     AB_Balance_SetValue(balance, val);
@@ -149,6 +151,10 @@ static int _import_053_001_04_read_transaction_details(AB_IMEXPORTER *ie,
   GWEN_XMLNODE *n;
 
   s = GWEN_XMLNode_GetCharValueByPath(xmlNode, "Refs/EndToEndId", NULL);
+  if (s && *s)
+    AB_Transaction_SetEndToEndReference(t, s);
+
+  s = GWEN_XMLNode_GetCharValueByPath(xmlNode, "Refs/AcctSvcrRef", NULL);
   if (s && *s)
     AB_Transaction_SetEndToEndReference(t, s);
 
@@ -281,11 +287,9 @@ _import_053_001_04_read_transaction(AB_IMEXPORTER *ie, GWEN_XMLNODE *xmlNode,
     const char *currency;
     AB_VALUE *val = NULL;
 
-    currency = GWEN_XMLNode_GetProperty(n, "Ccy", "EUR");
-
     s = GWEN_XMLNode_GetCharValue(xmlNode, "Amt", NULL);
     if (!(s && *s)) {
-      DBG_ERROR(AQBANKING_LOGDOMAIN, "No currency in <Ntry/Amt>: [%s]", s);
+      DBG_ERROR(AQBANKING_LOGDOMAIN, "No Amt in <Ntry/Amt>: [%s]", s);
       AB_Transaction_free(t);
       return GWEN_ERROR_BAD_DATA;
     }
@@ -297,7 +301,11 @@ _import_053_001_04_read_transaction(AB_IMEXPORTER *ie, GWEN_XMLNODE *xmlNode,
       return GWEN_ERROR_BAD_DATA;
     }
 
-    AB_Value_SetCurrency(val, currency);
+    currency = GWEN_XMLNode_GetProperty(n, "Ccy", 0);
+    if (currency && *currency) {
+      AB_Value_SetCurrency(val, currency);
+    }
+
     if (!isCredit)
       AB_Value_Negate(val);
 
@@ -390,9 +398,9 @@ _import_053_001_04_read_transactions(AB_IMEXPORTER *ie, GWEN_XMLNODE *xmlNode,
 }
 
 static int _import_053_001_04_statement(AB_IMEXPORTER *ie,
-                                     AB_IMEXPORTER_CONTEXT *ctx,
-                                     GWEN_DB_NODE *params,
-                                     GWEN_XMLNODE *xmlNode) {
+                                        AB_IMEXPORTER_CONTEXT *ctx,
+                                        GWEN_DB_NODE *params,
+                                        GWEN_XMLNODE *xmlNode) {
   GWEN_XMLNODE *n;
   AB_IMEXPORTER_ACCOUNTINFO *accountInfo = NULL;
   int rv;
