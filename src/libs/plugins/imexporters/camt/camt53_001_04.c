@@ -24,9 +24,13 @@ static void _import_053_001_04_read_account_spec(AB_IMEXPORTER *ie,
   if (s && *s)
     AB_AccountSpec_SetOwnerName(accountSpec, s);
 
-  s = GWEN_XMLNode_GetCharValueByPath(xmlNode, "Svcr/FinInstnId/BIC", NULL);
+  s = GWEN_XMLNode_GetCharValueByPath(xmlNode, "Svcr/FinInstnId/BICFI", NULL);
   if (s && *s)
     AB_AccountSpec_SetBic(accountSpec, s);
+
+  s = GWEN_XMLNode_GetCharValueByPath(xmlNode, "Svcr/FinInstnId/Nm", NULL);
+  if (s && *s)
+    AB_Account_SetBankName(accountSpec, s);
 }
 
 static int
@@ -385,7 +389,7 @@ _import_053_001_04_read_transactions(AB_IMEXPORTER *ie, GWEN_XMLNODE *xmlNode,
   return 0;
 }
 
-static int _import_053_001_04_report(AB_IMEXPORTER *ie,
+static int _import_053_001_04_statement(AB_IMEXPORTER *ie,
                                      AB_IMEXPORTER_CONTEXT *ctx,
                                      GWEN_DB_NODE *params,
                                      GWEN_XMLNODE *xmlNode) {
@@ -431,28 +435,28 @@ int AH_ImExporterCAMT_Import_053_001_04(AB_IMEXPORTER *ie,
                                         GWEN_XMLNODE *xmlNode) {
   GWEN_XMLNODE *n;
 
-  n = GWEN_XMLNode_FindFirstTag(xmlNode, "BkToCstmrAcctRpt", NULL, NULL);
+  n = GWEN_XMLNode_FindFirstTag(xmlNode, "BkToCstmrStmt", NULL, NULL);
   if (n == NULL) {
-    DBG_ERROR(AQBANKING_LOGDOMAIN, "<BkToCstmrAcctRpt> element not found");
+    DBG_ERROR(AQBANKING_LOGDOMAIN, "<BkToCstmrStmt> element not found");
     return GWEN_ERROR_BAD_DATA;
   }
 
-  n = GWEN_XMLNode_FindFirstTag(n, "Rpt", NULL, NULL);
+  n = GWEN_XMLNode_FindFirstTag(n, "Stmt", NULL, NULL);
   if (n == NULL) {
-    DBG_ERROR(AQBANKING_LOGDOMAIN, "<Rpt> element not found");
+    DBG_ERROR(AQBANKING_LOGDOMAIN, "<Stmt> element not found");
     return GWEN_ERROR_BAD_DATA;
   }
 
-  /* now read every report */
+  /* now read every statement */
   while (n) {
     int rv;
 
-    rv = _import_053_001_04_report(ie, ctx, params, n);
+    rv = _import_053_001_04_statement(ie, ctx, params, n);
     if (rv < 0) {
       DBG_INFO(AQBANKING_LOGDOMAIN, "here (%d)", rv);
       return rv;
     }
-    n = GWEN_XMLNode_FindNextTag(n, "Rpt", NULL, NULL);
+    n = GWEN_XMLNode_FindNextTag(n, "Stmt", NULL, NULL);
   }
   return 0;
 }
