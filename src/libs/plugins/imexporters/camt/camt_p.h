@@ -44,5 +44,11 @@ static int AH_ImExporterCAMT_Import_052_001_02(AB_IMEXPORTER *ie,
                                                GWEN_XMLNODE *xmlRoot);
 
 
+static int AH_ImExporterCAMT_Import_053_001_04(AB_IMEXPORTER *ie,
+                                               AB_IMEXPORTER_CONTEXT *ctx,
+                                               GWEN_DB_NODE *params,
+                                               GWEN_XMLNODE *xmlRoot);
+
+
 
 #endif /* AQBANKING_IMEX_CAMT_P_H */

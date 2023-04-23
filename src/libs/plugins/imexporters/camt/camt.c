@@ -98,6 +98,8 @@ int AH_ImExporterCAMT_Import(AB_IMEXPORTER *ie,
 
   if (strcasecmp(camVersionWanted, "052.001.02")==0)
     rv=AH_ImExporterCAMT_Import_052_001_02(ie, ctx, params, n);
+  else if (strcasecmp(camVersionWanted, "053.001.04")==0)
+    rv=AH_ImExporterCAMT_Import_053_001_04(ie, ctx, params, n);
   else
     rv=0;
 
@@ -126,6 +128,7 @@ int AH_ImExporterCAMT_CheckFile(AB_IMEXPORTER *ie, const char *fname)
 
 
 #include "camt52_001_02.c"
+#include "camt53_001_04.c"
 
 
 
